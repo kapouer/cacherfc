@@ -6,6 +6,10 @@
 
 https://github.com/kapouer/upcache
 
+# Useful Links
+
+https://www.rfc-editor.org/rfc/rfc9213.html
+
 # Quick ideas about HTTP caches
 
 ## Application, Proxy, Client
