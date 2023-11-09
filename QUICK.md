@@ -2,8 +2,6 @@
 marp: true
 ---
 
-Jérémy Lal kapouer@melix.org
-
 # ♼ HTTP et cache
 
 - À quoi servent les en-têtes ?
@@ -365,8 +363,14 @@ C'est une version perfectionnée de Vary:Cookie.
 [Jetons décentralisés avec JWT](https://jwt.io/)
 [Jetons décentralisés avec Biscuit](https://www.biscuitsec.org/)
 
+[Markdown de la présentation](https://github.com/kapouer/cacherfc/blob/main/QUICK.md)
+
 ---
 
-## Bonus
+## Voir aussi
 
 [Implémentation d'un proxy avancé nginx/lua et module nodejs](https://github.com/kapouer/upcache)
+
+@marp-team/marp-cli pour convertir markdown en slides.
+
+Contact: Jérémy Lal <kapouer@melix.org>
