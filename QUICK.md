@@ -2,9 +2,9 @@
 marp: true
 ---
 
-<font size="5">Jérémy Lal kapouer@melix.org</font>
+Jérémy Lal kapouer@melix.org
 
-# <font size="60">♼</font> HTTP et cache
+# ♼ HTTP et cache
 
 - À quoi servent les en-têtes ?
 
