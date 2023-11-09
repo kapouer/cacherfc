@@ -2,15 +2,21 @@
 marp: true
 ---
 
-# HTTP et cache
+<font size="5">Jérémy Lal kapouer@melix.org</font>
 
-♼
-Protocole, en-têtes, contrôle de cache, extensions.
-♼
+# <font size="60">♼</font> HTTP et cache
+
+- À quoi servent les en-têtes ?
+
+- Contrôler le cache.
+
+- Cache et proxy: limites et extensions
 
 ---
 
-## HTTP: requête
+## À quoi servent les en-têtes ?
+
+### HTTP: requête
 
 - un protocole (HTTP 1.0, 1.1, 2, 3)
 - une méthode (GET, POST, PUT, DELETE, ...)
@@ -21,7 +27,7 @@ Protocole, en-têtes, contrôle de cache, extensions.
 
 ---
 
-## HTTP: réponse
+### HTTP: réponse
 
 - le protocole
 - Status: 200, 301, 304, 404, 500...
@@ -30,7 +36,7 @@ Protocole, en-têtes, contrôle de cache, extensions.
 
 ---
 
-## Rôles des en-têtes
+### Rôles
 
 - décrire ce qui est envoyé ou reçu
 - négocier le contenu
@@ -39,7 +45,7 @@ Protocole, en-têtes, contrôle de cache, extensions.
 
 ---
 
-## Description du contenu
+### Description du contenu
 
 Description du body envoyé ou reçu
 
@@ -49,7 +55,7 @@ Description du body envoyé ou reçu
 
 ---
 
-## Négocier le contenu
+### Négocier le contenu
 
 Le client annonce ce qu'il accepte dans les headers de requête.
 
@@ -61,13 +67,31 @@ Le serveur choisit ce qu'il veut répondre et précise quoi dans les headers de 
 
 ---
 
-## Négocier implique Vary
+### Négocier implique Vary
 
 Le serveur répond en précisant quels en-têtes de requête font varier les réponses:
 
 - Vary: Accept, Accept-Language
 
 Très important pour la gestion du cache.
+
+---
+
+### Exemples
+
+Cas typique
+
+```http
+> HTTP/1.1 GET /pageweb
+> Accept: text/html,application/xml;q=0.9
+> Accept-Encoding: gzip, deflate, br
+> Accept-Language: fr-FR,fr;q=0.9,es-ES;q=0.8,es;q=0.7,la;q=0.6,en-US;q=0.5,en;q=0.4,ja;q=0.3
+
+< Status 200 OK
+< Content-Encoding: gzip
+< Content-Type: text/html; charset=utf-8
+< Vary: Accept-Encoding, Accept-Language
+```
 
 ---
 
@@ -85,22 +109,6 @@ On négocie rarement par User-Agent, mais il y a polyfill.io
 
 ---
 
-## Exemple
-
-```http
-> HTTP/1.1 GET /pageweb
-> Accept: text/html,application/xml;q=0.9
-> Accept-Encoding: gzip, deflate, br
-> Accept-Language: fr-FR,fr;q=0.9,es-ES;q=0.8,es;q=0.7,la;q=0.6,en-US;q=0.5,en;q=0.4,ja;q=0.3
-
-< Status 200 OK
-< Content-Encoding: gzip
-< Content-Type: text/html; charset=utf-8
-< Vary: Accept-Encoding, Accept-Language
-```
-
----
-
 ## Contrôler les caches
 
 - du navigateur
@@ -111,7 +119,7 @@ Même principe que la négociation de contenu.
 
 ---
 
-## Last-Modified et If-Modified-Since
+### Last-Modified et If-Modified-Since
 
 Le serveur répond la date de dernière modification du contenu
 
@@ -136,7 +144,7 @@ La réponse est 200 avec le contenu s'il a changé.
 
 ---
 
-## ETag et If-None-Match
+### ETag et If-None-Match
 
 Le serveur donne un hash ou un numéro de version du contenu
 
@@ -159,7 +167,7 @@ Le client:
 
 ---
 
-## Date et Expires
+### Date et Expires
 
 Un peu moins pratique, le serveur précise quand la réponse devient périmée
 
@@ -175,7 +183,7 @@ Le client peut conserver la requête dans son cache avant expiration.
 
 ---
 
-## Age, Cache-Control:max-age
+### Age, Cache-Control:max-age
 
 Si un proxy a conservé la requête, ce dernier peut indiquer combien de temps
 
@@ -194,7 +202,7 @@ Age est rarement utilisé par un serveur applicatif.
 
 ---
 
-## Options de contrôle
+### Options de contrôle
 
 - max-age=0: autorise la mise en cache mais immédiatement périmé
 - must-revalidate: client doit vérifier que son contenu est frais (If-Modified-Since ou If-None-Match les cas échéant)
@@ -205,7 +213,7 @@ Age est rarement utilisé par un serveur applicatif.
 
 ---
 
-## Ressources immuables
+### Ressources immuables
 
 Une bonne pratique consiste à donner une URL unique aux ressources immuables:
 
@@ -232,7 +240,7 @@ Situations:
 
 ---
 
-## Solutions naïves
+### Solutions naïves
 
 Pour répondre à ces problèmes, un proxy cache antique comme Varnish faisait:
 
@@ -242,7 +250,7 @@ Pour répondre à ces problèmes, un proxy cache antique comme Varnish faisait:
 
 ---
 
-## Problèmes
+### Problèmes
 
 - éparpillement de la configuration entre l'application et le proxy
 - lourd: les appels application > varnish sont très spécifiques
@@ -250,7 +258,7 @@ Pour répondre à ces problèmes, un proxy cache antique comme Varnish faisait:
 
 ---
 
-## Clés de cache
+### Clés de cache
 
 Une meilleure approche est d'étendre les mécanismes de la négociation HTTP aux besoins modernes.
 
@@ -258,7 +266,7 @@ Le protocole reste stateless, mais le proxy conserve des états sur les URL en c
 
 ---
 
-## Étiquettes et purge
+### Étiquettes et purge
 
 En-tête envoyée dans la réponse par l'applicatif.
 
@@ -274,7 +282,7 @@ Plus efficace, mais peu efficace (requête PURGE additionelle à chaque changeme
 
 ---
 
-## Étiquettes et REST
+### Étiquettes et REST
 
 - GET, HEAD: pas de modification des ressources (lecture)
 - POST, PUT, DELETE: modification (écriture)
@@ -311,7 +319,7 @@ Le proxy invalide toutes les URL portant cette étiquette.
 
 ---
 
-## Mapping de clés
+### Mapping de clés
 
 L'applicatif indique au cache qu'il peut associer ces deux URL à une seule ressource.
 
@@ -329,7 +337,7 @@ L'applicatif indique au cache qu'il peut associer ces deux URL à une seule ress
 
 ---
 
-## Clés par permissions et authentification décentralisée
+### Clés par permissions et authentification décentralisée
 
 Json Web Token, Biscuit sont des jetons d'authentification sécurisés (avec rsa asymmétrique par exemple), le proxy peut donc savoir quelles permissions sont possédées par un client.
 
@@ -354,7 +362,11 @@ C'est une version perfectionnée de Vary:Cookie.
 
 [Documentation pour les headers HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
 
-[Implémentation d'un proxy avancé nginx/lua et module nodejs](https://github.com/kapouer/upcache)
-
 [Jetons décentralisés avec JWT](https://jwt.io/)
 [Jetons décentralisés avec Biscuit](https://www.biscuitsec.org/)
+
+---
+
+## Bonus
+
+[Implémentation d'un proxy avancé nginx/lua et module nodejs](https://github.com/kapouer/upcache)
