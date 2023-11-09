@@ -4,7 +4,11 @@ marp: true
 
 # HTTP et cache
 
-Le protocole, ses en-têtes, et leur utilisation pour contrôler les caches.
+♼
+Protocole, en-têtes, contrôle de cache, extensions.
+♼
+
+---
 
 ## HTTP: requête
 
@@ -15,12 +19,16 @@ Le protocole, ses en-têtes, et leur utilisation pour contrôler les caches.
 - des en-têtes
 - un corps (body) optionel
 
+---
+
 ## HTTP: réponse
 
 - le protocole
 - Status: 200, 301, 304, 404, 500...
 - des en-têtes
 - un corps (body) optionel
+
+---
 
 ## Rôles des en-têtes
 
@@ -29,6 +37,8 @@ Le protocole, ses en-têtes, et leur utilisation pour contrôler les caches.
 - contrôler le cache
 - configurer le client
 
+---
+
 ## Description du contenu
 
 Description du body envoyé ou reçu
@@ -36,6 +46,8 @@ Description du body envoyé ou reçu
 - Content-Type: son type mime (obligatoire)
 - Content-Length: si présent, taille en octets
 - Content-Encoding: si présent, type de compression (gzip, deflate, br)
+
+---
 
 ## Négocier le contenu
 
@@ -47,6 +59,8 @@ Le serveur choisit ce qu'il veut répondre et précise quoi dans les headers de 
 - Accept-Encoding > Content-Encoding: les compressions (gzip, deflate, br)
 - Accept-Language > Content-Language: les langues (fr-FR,fr;q=0.9,es-ES;q=0.8)
 
+---
+
 ## Négocier implique Vary
 
 Le serveur répond en précisant quels en-têtes de requête font varier les réponses:
@@ -54,6 +68,8 @@ Le serveur répond en précisant quels en-têtes de requête font varier les ré
 - Vary: Accept, Accept-Language
 
 Très important pour la gestion du cache.
+
+---
 
 On négocie rarement par User-Agent, mais il y a polyfill.io
 
@@ -66,6 +82,8 @@ On négocie rarement par User-Agent, mais il y a polyfill.io
 < Content-Type: text/javascript
 < Vary: User-Agent, Accept-Encoding
 ```
+
+---
 
 ## Exemple
 
@@ -81,6 +99,8 @@ On négocie rarement par User-Agent, mais il y a polyfill.io
 < Vary: Accept-Encoding, Accept-Language
 ```
 
+---
+
 ## Contrôler les caches
 
 - du navigateur
@@ -88,6 +108,8 @@ On négocie rarement par User-Agent, mais il y a polyfill.io
 - et de tous les proxies qui peuvent se trouver entre les deux
 
 Même principe que la négociation de contenu.
+
+---
 
 ## Last-Modified et If-Modified-Since
 
@@ -112,6 +134,8 @@ Le client peut conserver la réponse et demander si elle est encore fraîche.
 
 La réponse est 200 avec le contenu s'il a changé.
 
+---
+
 ## ETag et If-None-Match
 
 Le serveur donne un hash ou un numéro de version du contenu
@@ -133,6 +157,8 @@ Le client:
 < PAS DE BODY
 ```
 
+---
+
 ## Date et Expires
 
 Un peu moins pratique, le serveur précise quand la réponse devient périmée
@@ -146,6 +172,8 @@ Un peu moins pratique, le serveur précise quand la réponse devient périmée
 ```
 
 Le client peut conserver la requête dans son cache avant expiration.
+
+---
 
 ## Age, Cache-Control:max-age
 
@@ -162,11 +190,11 @@ Si un proxy a conservé la requête, ce dernier peut indiquer combien de temps
 
 Un cache intermédiaire a conservé la réponse pendant une heure, le client sait qu'elle sera périmée dans une heure.
 
-On voit rarement émettre Age par le serveur applicatif.
+Age est rarement utilisé par un serveur applicatif.
+
+---
 
 ## Options de contrôle
-
-Si le contenu change souvent, le serveur ne peut pas donner une valeur pertinente à `max-age`.
 
 - max-age=0: autorise la mise en cache mais immédiatement périmé
 - must-revalidate: client doit vérifier que son contenu est frais (If-Modified-Since ou If-None-Match les cas échéant)
@@ -174,6 +202,8 @@ Si le contenu change souvent, le serveur ne peut pas donner une valeur pertinent
 - no-store: pas de cache du tout
 - private: cache non partagé - en pratique seul le navigateur garde en cache, pas les proxies
 - stale-while-revalidate=86400: le serveur indique que le client ou un proxy peut utiliser un contenu périmé pendant un certain temps, en attendant d'avoir revalidé le contenu.
+
+---
 
 ## Ressources immuables
 
@@ -183,8 +213,10 @@ Une bonne pratique consiste à donner une URL unique aux ressources immuables:
 - feuilles de style
 - images
 
-et laisser les caches les conserver longtemps sans aucune vérifications:
+et laisser les caches les conserver longtemps sans revalidation:
 `Cache-Control: max-age=31536000, immutable`.
+
+---
 
 ## Proxy et Cache
 
@@ -198,6 +230,8 @@ Situations:
 - contenus dynamiques sans surcharger le serveur applicatif
 - clients authentifiés sans surcharger le cache
 
+---
+
 ## Solutions naïves
 
 Pour répondre à ces problèmes, un proxy cache antique comme Varnish faisait:
@@ -206,17 +240,23 @@ Pour répondre à ces problèmes, un proxy cache antique comme Varnish faisait:
 - invalidation d'URL par préfixes: l'application utilise l'api http interne de varnish pour explicitement invalider des URL (une par une, ou par préfixes).
 - variation sur un cookie précis: varier sur tous les Cookies serait contre-productif, on précise que le cache doit varier sur un nom de cookie
 
+---
+
 ## Problèmes
 
 - éparpillement de la configuration entre l'application et le proxy
 - lourd: les appels application > varnish sont très spécifiques
 - inefficace, peu de partage de cache pour les clients authentifiés
 
+---
+
 ## Clés de cache
 
 Une meilleure approche est d'étendre les mécanismes de la négociation HTTP aux besoins modernes.
 
 Le protocole reste stateless, mais le proxy conserve des états sur les URL en cache.
+
+---
 
 ## Étiquettes et purge
 
@@ -232,10 +272,19 @@ Le serveur applicatif peut invalider des groupes d'URL en faisant des HTTP PURGE
 
 Plus efficace, mais peu efficace (requête PURGE additionelle à chaque changement de contenu).
 
+---
+
 ## Étiquettes et REST
 
-- GET, HEAD: pas de modification des ressources
-- POST, PUT, DELETE: modification
+- GET, HEAD: pas de modification des ressources (lecture)
+- POST, PUT, DELETE: modification (écriture)
+
+Ceci implique
+
+- lecture: l'application ne voit pas toujours passer ces requêtes reçues par le proxy
+- écriture: l'application reçoit toutes les requêtes
+
+---
 
 Le proxy va associer les deux étiquettes "app", "groupA" à l'URL /a
 
@@ -260,6 +309,8 @@ L'applicatif répond un header indiquant qu'il faut invalider l'étiquette "grou
 
 Le proxy invalide toutes les URL portant cette étiquette.
 
+---
+
 ## Mapping de clés
 
 L'applicatif indique au cache qu'il peut associer ces deux URL à une seule ressource.
@@ -275,6 +326,8 @@ L'applicatif indique au cache qu'il peut associer ces deux URL à une seule ress
 
 < X-Cache-Map: /notfound
 ```
+
+---
 
 ## Clés par permissions et authentification décentralisée
 
@@ -295,11 +348,13 @@ Un autre client demande la même URL avec la même permission: HIT.
 
 C'est une version perfectionnée de Vary:Cookie.
 
+---
+
 ## Sources
 
 [Documentation pour les headers HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers)
 
-[Implémentation d'un proxy avancé](https://github.com/kapouer/upcache)
+[Implémentation d'un proxy avancé nginx/lua et module nodejs](https://github.com/kapouer/upcache)
 
 [Jetons décentralisés avec JWT](https://jwt.io/)
 [Jetons décentralisés avec Biscuit](https://www.biscuitsec.org/)
